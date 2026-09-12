@@ -55,6 +55,9 @@ public class CarService {
 
     public void delete(Long id) {
         CarEntity car = findEntity(id);
+        if (car.getStatus() == CarStatus.SALON) {
+            throw new RuntimeException("Нельзя удалить автомобиль из салона");
+        }
         if (car.getStatus() == CarStatus.RENTED) {
             throw new RuntimeException("Нельзя удалить автомобиль в аренде");
         }
