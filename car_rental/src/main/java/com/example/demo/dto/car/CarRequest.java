@@ -1,4 +1,4 @@
-package com.example.demo.controllers;
+package com.example.demo.dto.car;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

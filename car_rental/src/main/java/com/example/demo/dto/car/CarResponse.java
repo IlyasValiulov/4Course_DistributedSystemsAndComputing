@@ -1,4 +1,4 @@
-package com.example.demo.controllers;
+package com.example.demo.dto.car;
 
 import com.example.demo.entities.CarStatus;
 

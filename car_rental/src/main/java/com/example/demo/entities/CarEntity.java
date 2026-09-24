@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "cars")
@@ -12,7 +14,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CarEntity {
+@SQLDelete(sql = "UPDATE cars SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
+public class CarEntity extends SoftDelete {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

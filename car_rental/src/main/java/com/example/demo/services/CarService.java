@@ -1,7 +1,7 @@
 package com.example.demo.services;
 
-import com.example.demo.controllers.CarRequest;
-import com.example.demo.controllers.CarResponse;
+import com.example.demo.dto.car.CarRequest;
+import com.example.demo.dto.car.CarResponse;
 import com.example.demo.entities.CarEntity;
 import com.example.demo.entities.CarStatus;
 import com.example.demo.mappers.CarMapper;
@@ -43,6 +43,9 @@ public class CarService {
 
     public CarResponse create(CarRequest dto) {
         CarEntity car = carMapper.toEntity(dto);
+        if (car.getStatus() == CarStatus.WRITTEN_OFF) {
+            throw new RuntimeException("Нельзя редактировать списанный автомобиль");
+        }
         car.setStatus(CarStatus.SALON);
         return carMapper.toDto(carRepository.save(car));
     }
@@ -62,6 +65,20 @@ public class CarService {
             throw new RuntimeException("Нельзя удалить автомобиль в аренде");
         }
         carRepository.delete(car);
+    }
+
+    @Transactional(readOnly = true)
+    public CarResponse getDeletedById(Long id) {
+        return carRepository.findDeletedById(id)
+                .map(carMapper::toDto)
+                .orElseThrow(() -> new RuntimeException("Удалённый автомобиль с id " + id + " не найден"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CarResponse> getAllDeleted() {
+        return carRepository.findAllDeleted().stream()
+                .map(carMapper::toDto)
+                .toList();
     }
 
     public CarResponse forRent(Long id) {

@@ -1,7 +1,7 @@
 package com.example.demo.mappers;
 
-import com.example.demo.controllers.CarRequest;
-import com.example.demo.controllers.CarResponse;
+import com.example.demo.dto.car.CarRequest;
+import com.example.demo.dto.car.CarResponse;
 import com.example.demo.entities.CarEntity;
 import org.springframework.stereotype.Component;
 
