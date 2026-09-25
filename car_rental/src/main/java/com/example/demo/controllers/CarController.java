@@ -2,7 +2,9 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.car.CarRequest;
 import com.example.demo.dto.car.CarResponse;
+import com.example.demo.dto.report.CarReportResponse;
 import com.example.demo.services.CarService;
+import com.example.demo.services.ReportClient;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +16,11 @@ public class CarController {
 
     private final CarService carService;
 
-    public CarController(CarService carService) {
+    private final ReportClient reportClient;
+
+    public CarController(CarService carService, ReportClient reportClient) {
         this.carService = carService;
+        this.reportClient = reportClient;
     }
 
     @GetMapping
@@ -68,5 +73,10 @@ public class CarController {
     @GetMapping("/deleted/{id}")
     public CarResponse getDeletedById(@PathVariable Long id) {
         return carService.getDeletedById(id);
+    }
+
+    @GetMapping("/report")
+    public CarReportResponse getReportStatus() {
+        return reportClient.getReportStatus();
     }
 }

@@ -16,11 +16,14 @@ services:
       DB_URL: jdbc:postgresql://db:5432/car_rental
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      REPORT_SERVICE_URL: http://report-service:8082
     expose:
       - "8081"
     depends_on:
       db:
         condition: service_healthy
+      report-service:
+        condition: service_started  
 
   report-service:
     build: ./report
