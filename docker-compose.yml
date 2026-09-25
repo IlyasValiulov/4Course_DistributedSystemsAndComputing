@@ -1,24 +1,43 @@
 services:
-
   db:
     image: postgres:18
     environment:
       POSTGRES_DB: car_rental
-      POSTGRES_USER: postgres
+      POSTGRES_USER: postgres 
       POSTGRES_PASSWORD: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 10
 
-  app:
+  car-service:
     build: ./car_rental
     environment:
       DB_URL: jdbc:postgresql://db:5432/car_rental
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-    ports:
-      - "8080:8080"
+    expose:
+      - "8081"
     depends_on:
       db:
         condition: service_healthy
+
+  report-service:
+    build: ./report
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/car_rental
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    expose:
+      - "8082"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - car-service
+      - report-service
