@@ -14,3 +14,10 @@ spring:
               uri: http://car-service:8081
               predicates:
                 - Path=/api/cars/**
+
+logging:
+  level:
+    root: INFO
+  logstash:
+    host: ${LOGSTASH_HOST:localhost}
+    port: ${LOGSTASH_PORT:5000}
