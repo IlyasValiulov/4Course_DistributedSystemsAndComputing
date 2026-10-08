@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.dto.report.CarReportResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -13,7 +14,7 @@ public class ReportClient {
 
     private final RestClient reportRestClient;
 
-    public ReportClient(RestClient reportRestClient) {
+    public ReportClient(@Qualifier("reportRestClient") RestClient reportRestClient) {
         this.reportRestClient = reportRestClient;
     }
 

@@ -5,6 +5,7 @@ import com.example.demo.dto.car.CarRequest;
 import com.example.demo.dto.car.CarResponse;
 import com.example.demo.services.CarService;
 import com.example.demo.services.ReportClient;
+import com.example.demo.services.CarReportExportService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,15 @@ public class CarController {
 
     private final ReportClient reportClient;
 
-    public CarController(CarService carService,ReportClient reportClient) {
+    private final CarReportExportService carReportExportService;
+
+    public CarController(
+            CarService carService,
+            ReportClient reportClient,
+            CarReportExportService carReportExportService) {
         this.carService = carService;
         this.reportClient = reportClient;
+        this.carReportExportService = carReportExportService;
     }
 
     @GetMapping
@@ -35,25 +42,18 @@ public class CarController {
 
     @GetMapping("/{id}")
     public CarResponse getById(@PathVariable Long id) {
-        log.info(
-                "Getting car by id={}",
-                id
-        );
-
+        log.info("Getting car by id={}", id);
         return carService.getById(id);
     }
 
     @PostMapping
-    public CarResponse create(
-            @Valid @RequestBody CarRequest dto) {
-
+    public CarResponse create(@Valid @RequestBody CarRequest dto) {
         log.info(
                 "Creating car: brand={}, model={}, productionYear={}",
                 dto.getBrand(),
                 dto.getModel(),
                 dto.getProductionYear()
         );
-
         return carService.create(dto);
     }
 
@@ -61,88 +61,55 @@ public class CarController {
     public CarResponse update(
             @PathVariable Long id,
             @Valid @RequestBody CarRequest dto) {
-
-        log.info(
-                "Updating car id={}",
-                id
-        );
-
+        log.info("Updating car id={}", id);
         return carService.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(
-            @PathVariable Long id) {
-
-        log.info(
-                "Deleting car id={}",
-                id
-        );
-
+    public void delete(@PathVariable Long id) {
+        log.info("Deleting car id={}", id);
         carService.delete(id);
     }
 
     @PostMapping("/{id}/for-rent")
-    public CarResponse forRent(
-            @PathVariable Long id) {
-
-        log.info(
-                "Moving car id={} to rental",
-                id
-        );
-
+    public CarResponse forRent(@PathVariable Long id) {
+        log.info("Moving car id={} to rental", id);
         return carService.forRent(id);
     }
 
     @PostMapping("/{id}/from-rent")
-    public CarResponse fromRent(
-            @PathVariable Long id) {
-
-        log.info(
-                "Returning car id={} from rental",
-                id
-        );
-
+    public CarResponse fromRent(@PathVariable Long id) {
+        log.info("Returning car id={} from rental", id);
         return carService.fromRent(id);
     }
 
     @PostMapping("/{id}/write-off")
-    public CarResponse writeOff(
-            @PathVariable Long id) {
-
-        log.info(
-                "Writing off car id={}",
-                id
-        );
-
+    public CarResponse writeOff(@PathVariable Long id) {
+        log.info("Writing off car id={}", id);
         return carService.writeOff(id);
     }
 
     @GetMapping("/deleted")
     public List<CarResponse> getAllDeleted() {
-
         log.info("Getting all deleted cars");
-
         return carService.getAllDeleted();
     }
 
     @GetMapping("/deleted/{id}")
-    public CarResponse getDeletedById(
-            @PathVariable Long id) {
-
-        log.info(
-                "Getting deleted car id={}",
-                id
-        );
-
+    public CarResponse getDeletedById(@PathVariable Long id) {
+        log.info("Getting deleted car id={}", id);
         return carService.getDeletedById(id);
     }
 
     @GetMapping("/report")
     public CarReportResponse getReport() {
-
         log.info("Getting cars report");
-
         return reportClient.getReport();
+    }
+
+    @PostMapping("/report/export")
+    public String exportReport() {
+        log.info("Exporting car report to file storage");
+        return carReportExportService.exportReport();
     }
 }

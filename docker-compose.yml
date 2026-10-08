@@ -17,6 +17,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       REPORT_SERVICE_URL: http://report-service:8082
+      FILE_STORAGE_SERVICE_URL: http://file-storage:8083
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
     expose:
@@ -25,7 +26,9 @@ services:
       db:
         condition: service_healthy
       report-service:
-        condition: service_started  
+        condition: service_started
+      file-storage:
+        condition: service_started
 
   report-service:
     build: ./report
@@ -41,6 +44,20 @@ services:
       db:
         condition: service_healthy
 
+  file-storage:
+    build: ./file_storage
+    environment:
+      FILE_STORAGE_PATH: /files
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: "5000"
+    expose:
+      - "8083"
+    volumes:
+      - file-storage-data:/files
+    depends_on:
+      logstash:
+        condition: service_started      
+
   gateway:
     build: ./gateway
     environment:
@@ -51,6 +68,7 @@ services:
     depends_on:
       - car-service
       - report-service
+      - file-storage
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.5.4
@@ -96,4 +114,5 @@ services:
         condition: service_healthy       
 
 volumes:
-  elasticsearch-data:        
+  elasticsearch-data:
+  file-storage-data:
