@@ -16,11 +16,16 @@ services:
       DB_URL: jdbc:postgresql://db:5432/car_rental
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      REPORT_SERVICE_URL: http://report-service:8082
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: "5000"
     expose:
       - "8081"
     depends_on:
       db:
         condition: service_healthy
+      report-service:
+        condition: service_started  
 
   report-service:
     build: ./report
@@ -28,6 +33,8 @@ services:
       DB_URL: jdbc:postgresql://db:5432/car_rental
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: "5000"
     expose:
       - "8082"
     depends_on:
@@ -36,8 +43,57 @@ services:
 
   gateway:
     build: ./gateway
+    environment:
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: "5000"
     ports:
       - "8080:8080"
     depends_on:
       - car-service
       - report-service
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fs http://localhost:9200/_cluster/health || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.5.4
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    environment:
+      LS_JAVA_OPTS: "-Xms256m -Xmx256m"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy 
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.5.4
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy       
+
+volumes:
+  elasticsearch-data:        
