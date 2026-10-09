@@ -17,9 +17,12 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       REPORT_SERVICE_URL: http://report-service:8082
-      FILE_STORAGE_SERVICE_URL: http://file-storage:8083
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
     expose:
       - "8081"
     depends_on:
@@ -27,7 +30,7 @@ services:
         condition: service_healthy
       report-service:
         condition: service_started
-      file-storage:
+      rabbitmq:
         condition: service_started
 
   report-service:
@@ -50,6 +53,10 @@ services:
       FILE_STORAGE_PATH: /files
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
     expose:
       - "8083"
     volumes:
@@ -111,8 +118,21 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
       elasticsearch:
-        condition: service_healthy       
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq           
 
 volumes:
   elasticsearch-data:
   file-storage-data:
+  rabbitmq-data:

@@ -5,27 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
 
     @Bean
     public RestClient reportRestClient(@Value("${report-service.url}") String reportServiceUrl) {
-        return createRestClient(reportServiceUrl);
-    }
-
-    @Bean
-    public RestClient fileStorageRestClient(@Value("${file-storage-service.url}") String fileStorageServiceUrl) {
-        return createRestClient(fileStorageServiceUrl);
-    }
-    
-    private RestClient createRestClient(String baseUrl) {
         return RestClient.builder()
-            .baseUrl(baseUrl)
+            .baseUrl(reportServiceUrl)
             .requestInterceptor((request, body, execution) -> {
                 String requestId = MDC.get("requestId");
                 if (requestId != null) {
