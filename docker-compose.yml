@@ -24,6 +24,10 @@ services:
       RABBITMQ_PORT: "5672"
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      JWT_ISSUER: car-rental-auth
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/public.pem
+    volumes:
+      - ./secrets/public.pem:/run/secrets/public.pem:ro  
     expose:
       - "8081"
     depends_on:
@@ -42,6 +46,10 @@ services:
       DB_PASSWORD: postgres
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
+      JWT_ISSUER: car-rental-auth
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/public.pem
+    volumes:
+      - ./secrets/public.pem:/run/secrets/public.pem:r  
     expose:
       - "8082"
     depends_on:
@@ -58,10 +66,13 @@ services:
       RABBITMQ_PORT: "5672"
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      JWT_ISSUER: car-rental-auth
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/public.pem
     expose:
       - "8083"
     volumes:
       - file-storage-data:/files
+      - ./secrets/public.pem:/run/secrets/public.pem:r 
     depends_on:
       logstash:
         condition: service_started      
@@ -71,12 +82,17 @@ services:
     environment:
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
+      JWT_ISSUER: car-rental-auth
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/public.pem
+    volumes:
+      - ./secrets/public.pem:/run/secrets/public.pem:ro  
     ports:
       - "8080:8080"
     depends_on:
       - car-service
       - report-service
       - file-storage
+      - auth-service
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.5.4
@@ -131,9 +147,44 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq           
+      - rabbitmq-data:/var/lib/rabbitmq        
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/car_rental
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: "5000"
+      JWT_PRIVATE_KEY_LOCATION: file:/run/secrets/private.pem
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/public.pem    
+    expose:
+      - "8084"
+    volumes:
+      - ./secrets/private.pem:/run/secrets/private.pem:ro
+      - ./secrets/public.pem:/run/secrets/public.pem:ro  
+    depends_on:
+      db:
+        condition: service_healthy        
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    expose:
+      - "9090"
+    networks:
+      - default
+    depends_on:
+      - car-service      
 
 volumes:
   elasticsearch-data:
   file-storage-data:
   rabbitmq-data:
+  prometheus-data:

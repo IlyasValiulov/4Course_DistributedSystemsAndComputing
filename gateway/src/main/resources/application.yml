@@ -1,3 +1,4 @@
+
 server:
   port: 8080
 
@@ -15,9 +16,21 @@ spring:
               predicates:
                 - Path=/api/cars/**
 
+            - id: auth-service
+              uri: http://auth-service:8084
+              predicates:
+                - Path=/api/auth/**
+
+jwt:
+  issuer: car-rental-auth
+  public-key-location: ${JWT_PUBLIC_KEY_LOCATION:file:../secrets/public.pem}
+
 logging:
   level:
     root: INFO
+    org.springframework.security: TRACE
+    org.springframework.security.web.server: TRACE
+    org.springframework.cloud.gateway: DEBUG
   logstash:
     host: ${LOGSTASH_HOST:localhost}
     port: ${LOGSTASH_PORT:5000}
