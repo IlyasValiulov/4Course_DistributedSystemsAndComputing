@@ -32,7 +32,6 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-
         String username = request.username().trim();
 
         if (userRepository.existsByUsername(username)) {
@@ -42,14 +41,8 @@ public class AuthService {
             );
         }
 
-        User user = new User(
-                username,
-                passwordEncoder.encode(request.password()),
-                Role.USER
-        );
-
+        User user = new User(username, passwordEncoder.encode(request.password()), Role.USER);
         User savedUser = userRepository.save(user);
-
         return new UserResponse(
                 savedUser.getId(),
                 savedUser.getUsername(),
