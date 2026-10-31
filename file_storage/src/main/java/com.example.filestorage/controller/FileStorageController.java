@@ -33,12 +33,18 @@ public class FileStorageController {
     }
 
     @GetMapping("/{filename}")
-    public ResponseEntity<byte[]> download(@PathVariable String filename) {
-        log.info("Downloading file: filename={}", filename);
+    public ResponseEntity<byte[]> downloadFile(@PathVariable String filename) {
+        log.info("Download request received: filename={}", filename);
         byte[] content = fileStorageService.get(filename);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("text/csv"));
-        headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
-        return ResponseEntity.ok().headers(headers).body(content);
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(filename)
+                                .build()
+                                .toString()
+                )
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(content);
     }
 }

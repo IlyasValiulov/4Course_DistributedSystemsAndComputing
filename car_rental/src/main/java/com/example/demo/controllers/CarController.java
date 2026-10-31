@@ -6,12 +6,19 @@ import com.example.demo.dto.car.CarResponse;
 import com.example.demo.services.CarService;
 import com.example.demo.services.ReportClient;
 import com.example.demo.services.CarReportExportService;
+import com.example.demo.services.FileStorageAsyncService;
+
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/cars")
@@ -25,13 +32,17 @@ public class CarController {
 
     private final CarReportExportService carReportExportService;
 
+    private final FileStorageAsyncService fileStorageAsyncService;
+
     public CarController(
             CarService carService,
             ReportClient reportClient,
-            CarReportExportService carReportExportService) {
+            CarReportExportService carReportExportService,
+            FileStorageAsyncService fileStorageAsyncService) {
         this.carService = carService;
         this.reportClient = reportClient;
         this.carReportExportService = carReportExportService;
+        this.fileStorageAsyncService = fileStorageAsyncService;
     }
 
     @GetMapping
@@ -111,5 +122,22 @@ public class CarController {
     public String exportReport() {
         log.info("Exporting car report to file storage");
         return carReportExportService.exportReport();
+    }
+
+    @GetMapping("/report/download/{filename}")
+    public CompletableFuture<ResponseEntity<byte[]>> downloadReport(@PathVariable String filename) {
+        log.info("Report download requested: filename={}", filename);
+
+        return fileStorageAsyncService.getReport(filename)
+                .thenApply(content -> ResponseEntity.ok()
+                        .header(
+                                HttpHeaders.CONTENT_DISPOSITION,
+                                ContentDisposition.attachment()
+                                        .filename(filename)
+                                        .build()
+                                        .toString()
+                        )
+                        .contentType(MediaType.parseMediaType("text/csv"))
+                        .body(content));
     }
 }

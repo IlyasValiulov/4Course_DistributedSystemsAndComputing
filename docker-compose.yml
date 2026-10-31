@@ -17,6 +17,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       REPORT_SERVICE_URL: http://report-service:8082
+      FILE_STORAGE_SERVICE_URL: http://file-storage:8083
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: "5000"
       RABBITMQ_HOST: rabbitmq
